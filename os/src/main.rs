@@ -11,37 +11,24 @@ use log::*;
 #[macro_use]
 mod console;
 
-core::arch::global_asm!(include_str!("entry.asm"));
+use core::arch::global_asm;
+global_asm!(include_str!("entry.asm"));
+global_asm!(include_str!("link_app.S"));
+
+pub mod batch;
+mod sync;
+pub mod syscall;
+pub mod trap;
 
 #[no_mangle]
 pub fn rust_main() -> ! {
-    extern "C" {
-        fn stext();
-        fn etext();
-        fn srodata();
-        fn erodata();
-        fn sdata();
-        fn edata();
-        fn sbss();
-        fn ebss();
-        fn boot_stack();
-        fn boot_stack_top();
-    }
-
     clear_bss();
-
     logger::init();
-    error!("Hello, rCore!");
+    info!("Hello, rCore!");
 
-    info!(".text [{:#x}, {:#x}]", stext as usize, etext as usize);
-    debug!(".rodata [{:#x}, {:#x}]", srodata as usize, erodata as usize);
-    trace!(".data [{:#x}, {:#x}]", sdata as usize, edata as usize);
-    warn!(".bss [{:#x}, {:#x}]", sbss as usize, ebss as usize);
-    error!(
-        ".stack [{:#x}, {:#x}]",
-        boot_stack as usize, boot_stack_top as usize
-    );
-    panic!("Shutdown machine!");
+    trap::init();
+    batch::init();
+    batch::run_next_app();
 }
 
 fn clear_bss() {
