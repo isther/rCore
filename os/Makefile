@@ -1,29 +1,72 @@
-build:
-	cargo build
+BOARD ?= qemu
+TARGET ?= riscv64gc-unknown-none-elf
+KERNEL_ELF ?= target/$(TARGET)/release/os
+KERNEL_BIN ?= $(KERNEL_ELF).bin
 
-build-release:
-	cargo build --release
+# Qemu
+SBI := rustsbi-qemu
+BOOTLOADER := ../bootloader/$(SBI).bin
+KERNEL_ENTRY_PA_QEMU := 0x80200000
 
-copy: build-release
-	rust-objcopy --strip-all target/riscv64gc-unknown-none-elf/release/os -O binary target/riscv64gc-unknown-none-elf/release/os.bin
+# D1
+XTASK ?= ../../rustsbi-d1/xtask/
+KERNEL_BIN_FOR_XTASK ?= ../../rCore/os/$(KERNEL_BIN)
 
-run: copy
-	qemu-system-riscv64 \
-    -machine virt \
-    -nographic \
-    -bios ../bootloader/rustsbi.bin \
-    -device loader,file=target/riscv64gc-unknown-none-elf/release/os.bin,addr=0x80200000
+# Binutils
+OBJDUMP := rust-objdump --arch-name=riscv64
+OBJCOPY := rust-objcopy --binary-architecture=riscv64
 
-run-gdb: copy
-	qemu-system-riscv64 \
-    -machine virt \
-    -nographic \
-    -bios ../bootloader/rustsbi.bin \
-    -device loader,file=target/riscv64gc-unknown-none-elf/release/os.bin,addr=0x80200000 \
-	-s -S
+run: build
 
-gdb: 
-	riscv64-unknown-elf-gdb \
-    -ex 'file target/riscv64gc-unknown-none-elf/release/os' \
-    -ex 'set arch riscv:rv64' \
-    -ex 'target remote localhost:1234'
+ifeq ($(BOARD),qemu)
+	@qemu-system-riscv64 \
+		-machine virt \
+		-nographic \
+		-bios $(BOOTLOADER) \
+		-device loader,file=$(KERNEL_BIN),addr=$(KERNEL_ENTRY_PA_QEMU)
+
+else
+	@cd $(XTASK) && cargo run debug --see --kernel $(KERNEL_BIN_FOR_XTASK)
+
+endif
+
+build: env kernel-bin 
+
+kernel-bin: kernel
+	@$(OBJCOPY) $(KERNEL_ELF) --strip-all -O binary $(KERNEL_BIN)
+
+kernel:
+	@echo Platform: $(BOARD)
+	@cargo build --release --target $(TARGET)
+
+
+env:board
+	(rustup target list | grep "$(TARGET) (installed)") || rustup target add $(TARGET)
+	cargo install cargo-binutils
+	rustup component add rust-src
+	rustup component add llvm-tools-preview
+
+board:
+
+ifneq ($(BOARD), qemu)
+
+TARGET = riscv64imac-unknown-none-elf
+
+endif
+
+clean:
+	@cargo clean
+
+gdb-server: build
+	@qemu-system-riscv64 \
+		-machine virt \
+		-nographic \
+		-bios $(BOOTLOADER) \
+		-device loader,file=$(KERNEL_BIN),addr=$(KERNEL_ENTRY_PA) \
+		-s -S
+
+gdb-client:
+	@riscv64-unknown-elf-gdb \
+		-ex 'file target/riscv64gc-unknown-none-elf/release/os' \
+		-ex 'set arch riscv:rv64' \
+		-ex 'target remote localhost:1234'
