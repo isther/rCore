@@ -49,10 +49,6 @@ env:board
 	rustup component add rust-src
 	rustup component add llvm-tools-preview
 
-clean:
-	@cargo clean
-	@rm src/link_app.S
-
 board:
 
 ifneq ($(BOARD), qemu)
