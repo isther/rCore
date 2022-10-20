@@ -1,15 +1,23 @@
+use std::cmp::Ordering;
+use std::env;
 use std::fs::{read_dir, File};
 use std::io::{Result, Write};
 
 fn main() {
+    let board = env::var("BOARD").unwrap();
+    let qemu = String::from("qemu");
+
+    let target_path: &str = match board.cmp(&qemu) {
+        Ordering::Equal => "../user/target/riscv64gc-unknown-none-elf/release/",
+        _ => "../user/target/riscv64imac-unknown-none-elf/release/",
+    };
+
     println!("cargo:rerun-if-changed=../user/src/");
-    println!("cargo:rerun-if-changed={}", TARGET_PATH);
-    insert_app_data().unwrap();
+    println!("cargo:rerun-if-changed={}", target_path);
+    insert_app_data(target_path).unwrap();
 }
 
-static TARGET_PATH: &str = "../user/target/riscv64gc-unknown-none-elf/release/";
-
-fn insert_app_data() -> Result<()> {
+fn insert_app_data(target_path: &str) -> Result<()> {
     let mut f = File::create("src/link_app.S").unwrap();
     let mut apps: Vec<_> = read_dir("../user/src/bin")
         .unwrap()
@@ -49,7 +57,7 @@ _num_app:
 app_{0}_start:
     .incbin "{2}{1}.bin"
 app_{0}_end:"#,
-            idx, app, TARGET_PATH
+            idx, app, target_path,
         )?;
     }
     Ok(())
