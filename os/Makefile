@@ -38,8 +38,6 @@ kernel-bin: kernel
 kernel:
 	@echo Platform: $(BOARD)
 	@cd ../user && make build
-	@cp src/linker-$(BOARD).ld src/linker.ld
-	@cp src/batch-$(BOARD).rs src/batch.rs
 	@cargo build --release --target $(TARGET)
 
 
@@ -60,8 +58,6 @@ endif
 clean:
 	@cargo clean
 	@rm src/link_app.S
-	@rm src/linker.ld
-	@rm src/batch.rs
 
 gdb-server: build
 	@qemu-system-riscv64 \

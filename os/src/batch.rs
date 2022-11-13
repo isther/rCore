@@ -3,9 +3,7 @@ use crate::trap::TrapContext;
 use core::arch::asm;
 use lazy_static::lazy_static;
 
-const MAX_APP_NUM: usize = 16;
-const APP_BASE_ADDRESS: usize = 0x40400000;
-const APP_SIZE_LIMIT: usize = 0x20000;
+use crate::config::{APP_BASE_ADDRESS, APP_SIZE_LIMIT, MAX_APP_NUM};
 
 struct AppManager {
     num_app: usize,
