@@ -1,16 +1,8 @@
-use std::cmp::Ordering;
-use std::env;
 use std::fs::{read_dir, File};
 use std::io::{Result, Write};
 
 fn main() {
-    let board = env::var("BOARD").unwrap();
-    let qemu = String::from("qemu");
-
-    let target_path: &str = match board.cmp(&qemu) {
-        Ordering::Equal => "../user/target/riscv64gc-unknown-none-elf/release/",
-        _ => "../user/target/riscv64imac-unknown-none-elf/release/",
-    };
+    let target_path = "../user/target/riscv64gc-unknown-none-elf/release/";
 
     println!("cargo:rerun-if-changed=../user/src/");
     println!("cargo:rerun-if-changed={}", target_path);
