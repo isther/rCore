@@ -43,3 +43,15 @@ pub fn exit(exit_code: i32) -> isize {
 pub fn yield_() -> isize {
     sys_yield()
 }
+
+pub fn get_time() -> isize {
+    sys_get_time()
+}
+
+pub fn sleep(ms: isize) {
+    let current_timer = get_time();
+    let wait_for = current_timer + ms;
+    while get_time() < wait_for {
+        yield_();
+    }
+}
