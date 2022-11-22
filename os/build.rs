@@ -10,7 +10,7 @@ fn main() {
 }
 
 fn insert_app_data(target_path: &str) -> Result<()> {
-    let mut f = File::create("src/link_app.S").unwrap();
+    let mut f = File::create("src/link_app.asm").unwrap();
     let mut apps: Vec<_> = read_dir("../user/src/bin")
         .unwrap()
         .into_iter()

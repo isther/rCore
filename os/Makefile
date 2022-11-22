@@ -38,7 +38,7 @@ env:
 
 clean:
 	@cargo clean
-	@rm src/link_app.S
+	@rm src/link_app.asm
 
 gdb-server: build
 	@qemu-system-riscv64 \

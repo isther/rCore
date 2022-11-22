@@ -1,4 +1,3 @@
-use crate::batch::run_next_app;
 use crate::syscall::syscall;
 use core::arch::global_asm;
 use riscv::register::{
@@ -10,7 +9,7 @@ use riscv::register::{
 mod context;
 pub use context::TrapContext;
 
-global_asm!(include_str!("trap.S"));
+global_asm!(include_str!("trap.asm"));
 
 pub fn init() {
     extern "C" {
@@ -32,18 +31,14 @@ pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
         }
         Trap::Exception(Exception::StoreFault) | Trap::Exception(Exception::StorePageFault) => {
             kernel!("PageFault in application, kernel killed it.");
-            run_next_app();
+            panic!("Cannot continue");
         }
         Trap::Exception(Exception::IllegalInstruction) => {
             kernel!("IllegalInstruction in application, kernel killed it.");
-            run_next_app();
+            panic!("Cannot continue");
         }
         _ => {
-            panic!(
-                "Unsupported trap {:?}, stval = {:#x}",
-                scause.cause(),
-                stval
-            );
+            panic!("Unsupported trap {:?} stval: {:#x}", scause.cause(), stval,);
         }
     }
     cx
