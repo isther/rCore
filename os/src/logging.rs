@@ -21,7 +21,7 @@ impl Log for Logger {
         };
 
         println!(
-            "\u{1B}[{}m[{:>5}] {}\u{1B}[0m",
+            "\u{1B}[{}m[Kernel-{:>5}] {}\u{1B}[0m",
             color,
             record.level(),
             record.args(),

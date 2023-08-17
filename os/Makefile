@@ -27,6 +27,7 @@ kernel-bin: kernel
 	@$(OBJCOPY) $(KERNEL_ELF) --strip-all -O binary $(KERNEL_BIN)
 
 kernel:
+	@cd ../user && make build
 	@echo Platform: $(BOARD)
 	@cargo build --release --target $(TARGET)
 

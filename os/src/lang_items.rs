@@ -8,13 +8,13 @@ use log::*;
 fn panic(info: &PanicInfo) -> ! {
     if let Some(location) = info.location() {
         error!(
-            "[kernel] Panicked at {}:{} {}",
+            "Panicked at {}:{} {}",
             location.file(),
             location.line(),
             info.message().unwrap()
         );
     } else {
-        error!("[kernel] Panicked: {}", info.message().unwrap());
+        error!("Panicked: {}", info.message().unwrap());
     }
     shutdown(true)
 }
